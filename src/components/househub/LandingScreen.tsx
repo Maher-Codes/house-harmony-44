@@ -1,3 +1,5 @@
+import { Home, Sparkles, DoorOpen } from "lucide-react";
+
 interface LandingScreenProps {
   onSetup: () => void;
   onJoin: () => void;
@@ -5,18 +7,20 @@ interface LandingScreenProps {
 
 const LandingScreen = ({ onSetup, onJoin }: LandingScreenProps) => (
   <div className="min-h-screen flex flex-col">
-    <div className="bg-gradient-to-br from-forest via-forest-2 to-forest-3 px-6 py-16 pb-20 text-center relative overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 55% at 50% 100%, rgba(196,154,46,.18), transparent)" }} />
+    <div className="bg-gradient-to-br from-primary via-primary to-primary-foreground/10 px-6 py-16 pb-20 text-center relative overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 70% 55% at 50% 100%, hsla(173, 58%, 60%, 0.1), transparent)" }} />
       <div className="relative">
-        <div className="text-6xl mb-5 animate-float">🏠</div>
-        <h1 className="font-display font-black text-4xl text-cream tracking-tight mb-3 animate-fade-up" style={{ animationDelay: ".08s" }}>
+        <div className="mb-5 animate-float text-white flex justify-center">
+          <div className="relative">
+            <Home size={64} strokeWidth={1.5} />
+            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-3 border-b-2 border-white rounded-full opacity-60"></div>
+          </div>
+        </div>
+        <h1 className="font-display font-black text-4xl text-white tracking-tight mb-3 animate-fade-up" style={{ animationDelay: ".08s" }}>
           HouseHub
         </h1>
-        <p className="text-cream/70 font-medium text-lg mb-1 animate-fade-up" style={{ animationDelay: ".18s" }}>
-          Organized House 🏡 → Happy People 😊
-        </p>
-        <p className="text-cream/40 text-sm animate-fade-up" style={{ animationDelay: ".26s" }}>
-          Hi there 👋
+        <p className="text-white/80 font-medium text-lg animate-fade-up" style={{ animationDelay: ".18s" }}>
+          Organized House → Happy People
         </p>
       </div>
     </div>
@@ -27,29 +31,33 @@ const LandingScreen = ({ onSetup, onJoin }: LandingScreenProps) => (
       </p>
 
       <button
-        className="w-full p-5 rounded-xl border-2 border-border bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-forest hover:bg-forest/5 hover:translate-x-1 hover:shadow-warm animate-fade-up"
+        className="w-full p-5 rounded-3xl border border-border bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:translate-x-1 hover:shadow-md animate-fade-up"
         style={{ animationDelay: ".42s" }}
         onClick={onSetup}
       >
-        <span className="text-4xl">✨</span>
-        <div className="flex-1">
-          <div className="text-base mb-0.5">Set up a new house</div>
-          <div className="font-normal text-sm text-ink-3">Create your house and invite housemates</div>
+        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <Sparkles size={24} />
         </div>
-        <span className="text-ink-4 text-lg">→</span>
+        <div className="flex-1">
+          <div className="text-base font-bold text-foreground mb-0.5">Set up a new house</div>
+          <div className="font-normal text-sm text-muted-foreground">Create your house and invite housemates</div>
+        </div>
+        <span className="text-muted-foreground/50 text-lg">→</span>
       </button>
 
       <button
-        className="w-full p-5 rounded-xl border-2 border-border bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-forest hover:bg-forest/5 hover:translate-x-1 hover:shadow-warm animate-fade-up"
+        className="w-full p-5 rounded-3xl border border-border bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:translate-x-1 hover:shadow-md animate-fade-up"
         style={{ animationDelay: ".5s" }}
         onClick={onJoin}
       >
-        <span className="text-4xl">🚪</span>
-        <div className="flex-1">
-          <div className="text-base mb-0.5">Join existing house</div>
-          <div className="font-normal text-sm text-ink-3">Enter your 6-digit house code</div>
+        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+          <DoorOpen size={24} />
         </div>
-        <span className="text-ink-4 text-lg">→</span>
+        <div className="flex-1">
+          <div className="text-base font-bold text-foreground mb-0.5">Join existing house</div>
+          <div className="font-normal text-sm text-muted-foreground">Enter your 6-digit house code</div>
+        </div>
+        <span className="text-muted-foreground/50 text-lg">→</span>
       </button>
     </div>
   </div>

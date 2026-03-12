@@ -6,71 +6,50 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 215 20% 20%;
+    --background: 210 40% 98%; /* #F8FAFC */
+    --foreground: 215 25% 17%; /* #1F2937 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 215 20% 20%;
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 215 25% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 20% 20%;
+    --popover-foreground: 215 25% 17%;
 
-    --primary: 217 91% 53%;
+    --primary: 173 58% 39%; /* #2A9D8F - Soft Teal */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 20% 93%;
-    --secondary-foreground: 215 20% 20%;
+    --secondary: 217 100% 61%; /* #3A86FF - Calm Blue */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 93%;
-    --muted-foreground: 215 10% 45%;
+    --accent: 27 87% 67%; /* #F4A261 - Warm Orange */
+    --accent-foreground: 215 25% 17%;
 
-    --accent: 210 20% 93%;
-    --accent-foreground: 215 20% 20%;
+    --muted: 210 25% 93%;
+    --muted-foreground: 218 9% 46%; /* #6B7280 */
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 20% 88%;
     --input: 214 20% 88%;
-    --ring: 217 91% 60%;
+    --ring: 173 58% 39%;
 
-    --radius: 1rem;
+    --radius: 1.5rem;
 
-    /* HouseHub custom tokens */
-    --forest: 217 91% 53%;
-    --forest-2: 217 85% 46%;
-    --forest-3: 217 78% 40%;
-    --gold: 173 80% 40%;
-    --gold-2: 173 72% 50%;
-    --rust: 0 72% 51%;
-    --sage: 152 55% 42%;
-    --sage-2: 152 45% 55%;
-    --sky: 210 55% 42%;
-    --ink: 215 25% 12%;
-    --ink-2: 215 20% 22%;
-    --ink-3: 215 12% 40%;
-    --ink-4: 215 10% 56%;
-    --cream: 210 40% 98%;
-    --cream-2: 210 25% 93%;
-    --cream-3: 210 18% 86%;
+    /* Shadow system - Soft and Modern */
+    --shadow-sm: 0 2px 4px rgba(31, 41, 55, 0.05);
+    --shadow-md: 0 6px 16px rgba(31, 41, 55, 0.08);
+    --shadow-lg: 0 12px 32px rgba(31, 41, 55, 0.12);
 
-    /* Status colors */
-    --status-success: 152 55% 42%;
-    --status-warning: 45 93% 47%;
-    --status-danger: 0 72% 51%;
-
-    --shadow-sm: 0 2px 20px hsla(215, 15%, 15%, 0.06);
-    --shadow-md: 0 6px 32px hsla(215, 15%, 15%, 0.10);
-    --shadow-lg: 0 16px 56px hsla(215, 15%, 15%, 0.14);
-
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 215 20% 20%;
-    --sidebar-primary: 217 91% 53%;
+    /* Sidebar tokens */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 17%;
+    --sidebar-primary: 173 58% 39%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 20% 93%;
-    --sidebar-accent-foreground: 215 20% 20%;
+    --sidebar-accent: 210 25% 93%;
+    --sidebar-accent-foreground: 215 25% 17%;
     --sidebar-border: 214 20% 88%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 173 58% 39%;
   }
 }
 

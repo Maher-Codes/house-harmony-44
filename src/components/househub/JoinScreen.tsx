@@ -61,13 +61,13 @@ const JoinScreen = ({ enterApp, onBack }: JoinScreenProps) => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <div className="bg-gradient-to-br from-forest via-forest-2 to-forest-3 px-6 pt-12 pb-8">
+      <div className="bg-primary/5 border-b border-border/40 px-6 pt-12 pb-8">
         <div className="max-w-md mx-auto">
-          <button className="bg-transparent border-none text-cream/50 text-sm font-bold cursor-pointer pb-4 block" onClick={onBack}>← Back</button>
-          <h2 className="font-display font-extrabold text-3xl text-cream mb-1.5">
+          <button className="bg-transparent border-none text-muted-foreground text-sm font-bold cursor-pointer pb-4 block hover:text-foreground transition-colors" onClick={onBack}>← Back</button>
+          <h2 className="font-display font-extrabold text-3xl text-foreground mb-1.5">
             {step === "code" ? "Enter house code" : "✅ Code verified!"}
           </h2>
-          <p className="text-cream/55 text-sm">
+          <p className="text-muted-foreground text-sm">
             {step === "code" ? "Your housemate shared a 6-digit code with you." : "Select your name to load your dashboard."}
           </p>
         </div>
@@ -84,7 +84,7 @@ const JoinScreen = ({ enterApp, onBack }: JoinScreenProps) => {
                   inputMode="numeric"
                   maxLength={1}
                   value={d}
-                  className={`w-12 h-16 rounded-xl border-2 bg-cream font-display text-2xl font-bold text-forest text-center outline-none transition-all focus:border-forest focus:shadow-[0_0_0_4px_hsla(217,91%,53%,.1)] focus:scale-105 ${d ? "border-forest/35 bg-card" : "border-border"}`}
+                  className={`w-12 h-16 rounded-xl border-2 bg-background font-display text-2xl font-bold text-primary text-center outline-none transition-all focus:border-primary focus:shadow-[0_0_0_4px_rgba(42,157,143,0.1)] focus:scale-105 ${d ? "border-primary/35 bg-card" : "border-border"}`}
                   ref={el => { refs.current[i] = el; }}
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleKey(i, e)}
@@ -94,31 +94,31 @@ const JoinScreen = ({ enterApp, onBack }: JoinScreenProps) => {
               ))}
             </div>
             {error && (
-              <div className="animate-pop bg-rust/10 border-2 border-rust/25 rounded-xl px-4 py-3 text-rust font-bold text-sm text-center">
+              <div className="animate-pop bg-accent/10 border-2 border-accent/25 rounded-xl px-4 py-3 text-accent font-bold text-sm text-center">
                 {error}
               </div>
             )}
-            <button className="w-full py-4 rounded-xl bg-forest font-bold text-cream shadow-[0_4px_20px_hsla(217,91%,53%,.3)] hover:bg-forest-2 active:scale-[0.96] transition-all disabled:opacity-40" onClick={verify} disabled={!digits.every(d => d)}>Verify Code →</button>
-            <p className="text-ink-4 text-xs text-center">Ask your housemate for the 6-digit code 😊</p>
+            <button className="w-full py-4 rounded-xl bg-primary font-bold text-primary-foreground shadow-md hover:translate-y-[-2px] active:scale-[0.98] transition-all disabled:opacity-40" onClick={verify} disabled={!digits.every(d => d)}>Verify Code →</button>
+            <p className="text-muted-foreground/60 text-xs text-center">Ask your housemate for the 6-digit code 😊</p>
           </div>
         )}
 
         {step === "name" && (
           <div className="flex flex-col gap-3 animate-fade-up">
-            <p className="text-ink-3 text-sm mb-1">Select your name from the list:</p>
+            <p className="text-muted-foreground text-sm mb-1">Select your name from the list:</p>
             {DEMO.members.map((m, i) => (
               <button
                 key={m.id}
-                className={`w-full p-5 rounded-xl border-2 bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-forest hover:bg-forest/5 hover:translate-x-1 animate-fade-up ${chosen === m.id ? "border-forest bg-forest/5" : "border-border"}`}
+                className={`w-full p-5 rounded-3xl border-2 bg-card text-left font-semibold flex items-center gap-4 transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:translate-x-1 animate-fade-up shadow-sm ${chosen === m.id ? "border-primary bg-primary/5" : "border-border"}`}
                 style={{ animationDelay: `${i * 0.07}s` }}
                 onClick={() => choose(m)}
               >
                 <Avatar name={m.name} size={50} radius={16} fontSize={20} />
                 <div className="flex-1">
-                  <div className="text-lg">{m.name}</div>
-                  <div className="font-normal text-xs text-ink-3 mt-0.5">Joined {fmtDate(m.joined_at, { month: "short", day: "numeric" })}</div>
+                  <div className="text-lg text-foreground">{m.name}</div>
+                  <div className="font-normal text-xs text-muted-foreground mt-0.5">Joined {fmtDate(m.joined_at, { month: "short", day: "numeric" })}</div>
                 </div>
-                {chosen === m.id && <span className="text-forest text-xl">✓</span>}
+                {chosen === m.id && <span className="text-primary text-xl">✓</span>}
               </button>
             ))}
           </div>

@@ -3,6 +3,7 @@ import { Member, House, CleanRecord, Purchase, ActivityLog, RotationEntry, Alert
 import HomeTab from "./HomeTab";
 import CleaningTab from "./CleaningTab";
 import SuppliesTab from "./SuppliesTab";
+import { Home, Brush, ShoppingCart } from "lucide-react";
 
 interface DashboardProps {
   initialUser: Member;
@@ -69,8 +70,8 @@ const Dashboard = ({ initialUser, initialHouse, initialMembers, initialCleanRecs
     });
     const l: ActivityLog = { id: uid(), member_id: user.id, action: `${user.name} cleaned the house`, icon: "🧹", created_at: now() };
     setActLog(p => [l, ...p]);
-    addAlert("🧹 Cleaning recorded! Great job.", "🧹");
-    showToast("🎉 Cleaning marked as done!");
+    addAlert("Cleaning recorded! Great job.", "🧹");
+    showToast("Cleaning marked as done!");
   }, [user, house, addAlert, showToast]);
 
   const doBuy = useCallback((supply: Supply) => {
@@ -79,32 +80,43 @@ const Dashboard = ({ initialUser, initialHouse, initialMembers, initialCleanRecs
     const l: ActivityLog = { id: uid(), member_id: user.id, action: `${user.name} bought ${supply.label}`, icon: supply.icon, created_at: now() };
     setPurchases(prev => [p, ...prev]);
     setActLog(prev => [l, ...prev]);
-    addAlert(`${supply.icon} ${supply.label} logged!`, supply.icon);
-    showToast(`${supply.icon} ${supply.label} purchase saved!`);
+    addAlert(`${supply.label} logged!`, supply.icon);
+    showToast(`${supply.label} purchase saved!`);
   }, [user, addAlert, showToast]);
 
   const tabs = [
-    { id: "home", ico: "🏡", l: "Home" },
-    { id: "cleaning", ico: "🧹", l: "Cleaning" },
-    { id: "supplies", ico: "🛒", l: "Supplies" },
+    { id: "home", ico: <Home size={18} />, l: "Home" },
+    { id: "cleaning", ico: <Brush size={18} />, l: "Cleaning" },
+    { id: "supplies", ico: <ShoppingCart size={18} />, l: "Supplies" },
   ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 text-foreground">
       {/* Header */}
       <div className="relative overflow-hidden px-5 pt-8 pb-20 bg-background">
         <div className="max-w-xl mx-auto relative">
-          <p className="text-xs font-bold text-ink-4 tracking-widest uppercase mb-4 animate-fade-down">
-            📅 {todayFull()}
-          </p>
-
-          <div className="flex justify-between items-start gap-3 mb-3.5">
-            <div className="flex-1">
-              <h1 className="font-display font-extrabold text-3xl text-forest leading-tight mb-1 animate-fade-up" style={{ animationDelay: ".06s" }}>
-                {greet()}, {user?.name} 👋
+          <div className="flex items-center justify-between mb-8 animate-fade-down uppercase">
+            <div className="flex items-center gap-2.5">
+              <div className="relative text-primary flex items-center justify-center">
+                <Home size={28} strokeWidth={2.5} />
+                <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-4 h-1.5 border-b-2 border-primary rounded-full opacity-40"></div>
+              </div>
+              <h1 className="font-display font-black text-xl text-foreground tracking-tight">
+                HouseHub
               </h1>
-              <p className="text-ink-3 text-sm font-medium animate-fade-up" style={{ animationDelay: ".14s" }}>
-                Hope you have a wonderful day! ✨
+            </div>
+            <p className="text-[10px] font-black text-muted-foreground/50 tracking-[0.2em]">
+              {todayFull()}
+            </p>
+          </div>
+
+          <div className="flex justify-between items-start gap-3 mb-4">
+            <div className="flex-1">
+              <h2 className="font-display font-black text-4xl text-foreground leading-tight mb-2 animate-fade-up" style={{ animationDelay: ".06s" }}>
+                Welcome home, {user?.name.split(' ')[0]}
+              </h2>
+              <p className="text-muted-foreground text-sm font-medium animate-fade-up opacity-80" style={{ animationDelay: ".14s" }}>
+                Everything is organized and ready for you today.
               </p>
             </div>
           </div>
@@ -115,7 +127,7 @@ const Dashboard = ({ initialUser, initialHouse, initialMembers, initialCleanRecs
               {alerts.slice(0, 3).map((a, i) => (
                 <div
                   key={a.id}
-                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-forest/8 border border-forest/15 text-forest animate-notif-in"
+                  className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-sm font-semibold bg-primary/8 border border-primary/15 text-primary animate-notif-in"
                   style={{ animationDelay: `${i * 0.06}s` }}
                 >
                   <span className="text-base">{a.icon}</span>
@@ -129,14 +141,14 @@ const Dashboard = ({ initialUser, initialHouse, initialMembers, initialCleanRecs
 
       {/* Tab bar */}
       <div className="max-w-xl mx-auto -mt-10 px-4 relative z-10">
-        <div className="flex gap-1 bg-cream-2 rounded-2xl p-1.5 border border-border shadow-warm">
+        <div className="flex gap-1 bg-muted/30 rounded-2xl p-1.5 border border-border shadow-sm">
           {tabs.map(t => (
             <button
               key={t.id}
-              className={`flex-1 py-3 px-2 rounded-xl border-none cursor-pointer font-bold text-xs flex flex-col items-center gap-1 transition-all ${tab === t.id ? "bg-card text-forest shadow-[0_2px_12px_hsla(215,15%,15%,.1)]" : "bg-transparent text-ink-4"}`}
+              className={`flex-1 py-3 px-2 rounded-xl border-none cursor-pointer font-bold text-xs flex flex-col items-center gap-1.5 transition-all ${tab === t.id ? "bg-card text-primary shadow-md" : "bg-transparent text-muted-foreground hover:text-foreground"}`}
               onClick={() => setTab(t.id)}
             >
-              <span className="text-lg">{t.ico}</span>
+              <span className="">{t.ico}</span>
               <span>{t.l}</span>
             </button>
           ))}
@@ -152,7 +164,7 @@ const Dashboard = ({ initialUser, initialHouse, initialMembers, initialCleanRecs
 
       {/* Toast */}
       {toast && (
-        <div key={toast.id} className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-forest text-cream px-5 py-3 rounded-xl font-bold text-sm shadow-warm-lg z-50 whitespace-nowrap animate-pop">
+        <div key={toast.id} className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-5 py-3 rounded-xl font-bold text-sm shadow-lg z-50 whitespace-nowrap animate-pop">
           {toast.msg}
         </div>
       )}

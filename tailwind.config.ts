@@ -51,32 +51,6 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        forest: {
-          DEFAULT: "hsl(var(--forest))",
-          2: "hsl(var(--forest-2))",
-          3: "hsl(var(--forest-3))",
-        },
-        gold: {
-          DEFAULT: "hsl(var(--gold))",
-          2: "hsl(var(--gold-2))",
-        },
-        rust: "hsl(var(--rust))",
-        sage: {
-          DEFAULT: "hsl(var(--sage))",
-          2: "hsl(var(--sage-2))",
-        },
-        sky: "hsl(var(--sky))",
-        ink: {
-          DEFAULT: "hsl(var(--ink))",
-          2: "hsl(var(--ink-2))",
-          3: "hsl(var(--ink-3))",
-          4: "hsl(var(--ink-4))",
-        },
-        cream: {
-          DEFAULT: "hsl(var(--cream))",
-          2: "hsl(var(--cream-2))",
-          3: "hsl(var(--cream-3))",
-        },
         status: {
           success: "hsl(var(--status-success))",
           warning: "hsl(var(--status-warning))",

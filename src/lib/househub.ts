@@ -56,13 +56,13 @@ export interface Alert {
 }
 
 // Constants
-export const AV_COLORS = ["#1e40af","#0f766e","#7c3aed","#b45309","#be123c","#0369a1","#4338ca","#15803d"];
+export const AV_COLORS = ["#2A9D8F", "#3A86FF", "#F4A261", "#21867A", "#2563EB", "#D97706", "#1F2937", "#4F46E5"];
 
 export const SUPPLIES: Supply[] = [
-  { id: "gas",    label: "Gas",    icon: "🔥", bg: "#fef2f2", col: "#dc2626" },
-  { id: "water",  label: "Water",  icon: "💧", bg: "#eff6ff", col: "#2563eb" },
-  { id: "soap",   label: "Soap",   icon: "🫧", bg: "#f0fdf4", col: "#16a34a" },
-  { id: "sponge", label: "Sponge", icon: "🧽", bg: "#fffbeb", col: "#d97706" },
+  { id: "gas",    label: "Gas",    icon: "🔥", bg: "rgba(244, 162, 97, 0.1)", col: "#F4A261" },
+  { id: "water",  label: "Water",  icon: "💧", bg: "rgba(58, 134, 255, 0.1)", col: "#3A86FF" },
+  { id: "soap",   label: "Soap",   icon: "🫧", bg: "rgba(42, 157, 143, 0.1)", col: "#2A9D8F" },
+  { id: "sponge", label: "Sponge", icon: "🧽", bg: "rgba(244, 162, 97, 0.08)", col: "#D97706" },
 ];
 
 // Utilities
