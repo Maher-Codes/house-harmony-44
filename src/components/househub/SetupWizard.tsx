@@ -1,6 +1,8 @@
 import { useState, useMemo } from "react";
 import { Member, House, CleanRecord, Purchase, ActivityLog, RotationEntry, SUPPLIES, uid, now, genCode, buildRotation, fmtDate } from "@/lib/househub";
 import Avatar from "./Avatar";
+import { supabase } from "@/integrations/supabase/client";
+import { houseService } from "@/services/houseService";
 
 interface SetupWizardProps {
   enterApp: (member: Member, house: House, members: Member[], cleanRecs: CleanRecord[], purchases: Purchase[], log: ActivityLog[], rotation: RotationEntry[]) => void;
@@ -14,7 +16,8 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
   const [count, setCount] = useState("");
   const [names, setNames] = useState<string[]>([]);
   const [history, setHistory] = useState<Record<string, string>>({ gas: "", water: "", soap: "", cleaner: "" });
-  const [code] = useState(genCode);
+  const [code, setCode] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
   const [chosen, setChosen] = useState<string | null>(null);
 
@@ -30,7 +33,25 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
     goNext();
   };
 
-  const handleFinish = () => setStep(4);
+  const handleFinish = async () => {
+    setIsGenerating(true);
+    try {
+      const generatedCode = await houseService.generateUniqueHouseCode();
+      const newHouse = await houseService.createHouse(houseName, generatedCode);
+
+      if (!newHouse) {
+        throw new Error("Failed to create house: No data returned");
+      }
+
+      setCode(generatedCode);
+      setStep(4);
+    } catch (err) {
+      console.error("Failed to set up house:", err);
+      // In a real app, we might show a toast or error message here
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const buildAndEnter = (member: Member) => {
     const houseData: House = { id: uid(), name: houseName.trim(), code, created_at: now() };
@@ -153,7 +174,7 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
                 </select>
               </div>
             ))}
-            <button className="w-full py-4 rounded-xl bg-primary font-bold text-primary-foreground shadow-md hover:translate-y-[-2px] active:scale-[0.98] transition-all mt-1 disabled:opacity-40" onClick={handleFinish} disabled={!v3}>Generate House Code →</button>
+            <button className="w-full py-4 rounded-xl bg-primary font-bold text-primary-foreground shadow-md hover:translate-y-[-2px] active:scale-[0.98] transition-all mt-1 disabled:opacity-40" onClick={handleFinish} disabled={!v3 || isGenerating}>{isGenerating ? "Generating..." : "Generate House Code →"}</button>
           </div>
         )}
 
