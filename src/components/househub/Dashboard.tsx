@@ -33,6 +33,19 @@ interface UndoAction {
   execute: () => Promise<void>;
 }
 
+const MOTIVATIONAL_MESSAGES = [
+  "Ready to make this home even better today?",
+  "Teamwork makes the dream work — let's check the list.",
+  "Small actions, big impact. You're doing great!",
+  "Keep the house fair, keep the house happy.",
+  "Organized living starts here. What's first?",
+  "You've got this! Let's keep things moving smoothly.",
+  "Your housemates appreciate everything you do! 🏠",
+  "A little progress each day adds up to a big result.",
+  "Fair share, happy house! Let's stay on top of it.",
+  "Everything is easier when we do it together."
+];
+
 const Dashboard = ({
   initialUser,
   initialHouse,
@@ -49,6 +62,9 @@ const Dashboard = ({
 }: DashboardProps) => {
 
   const [tab,          setTab]         = useState("home");
+  const motivationalMessage = useMemo(() => 
+    MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)], 
+  []);
   const [members]                      = useState(initialMembers);
   const [rotation,     setRotation]    = useState(initialRotation);
   const [cleanRecs,    setCleanRecs]   = useState(initialCleanRecs);
@@ -372,7 +388,10 @@ const Dashboard = ({
             <h2 className="font-display font-black text-4xl text-primary leading-tight">
               Hello, {user?.name.split(" ")[0]} 👋
             </h2>
-            <p className="text-muted-foreground text-base mt-1.5">Here's what needs to be done.</p>
+            <p className="text-muted-foreground text-base mt-2 animate-fade-up font-medium leading-relaxed" 
+               style={{ animationDelay: "0.15s" }}>
+              {motivationalMessage}
+            </p>
           </div>
         </div>
       </div>
