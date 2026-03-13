@@ -69,14 +69,30 @@ const JoinScreen = ({ enterApp, onBack }: JoinScreenProps) => {
       }
 
       // 2. Load all house data in parallel using correct table names
-      const [members, cleanRecs, purchases, supplyResps] = await Promise.all([
+      const [members, cleanRecs, purchases, supplyResps, houseSettings] = await Promise.all([
         houseService.getMembers(house.id),
         houseService.getCleanRecords(house.id),
         houseService.getPurchases(house.id),
         houseService.getSupplyResponsibilities(house.id),
+        houseService.getHouseSettings(house.id),
       ]);
 
-      // 3. Store everything in state
+      // 3. Handle legacy houses missing house_settings
+      if (!houseSettings) {
+        await houseService.saveHouseSettings(house.id, {
+          supplies: [
+            { id: "Water", label: "Water", icon: "💧", bg: "rgba(58,134,255,0.1)", col: "#3A86FF" },
+            { id: "Gas", label: "Gas", icon: "🔥", bg: "rgba(244,162,97,0.1)", col: "#F4A261" },
+            { id: "Soap & Sponge", label: "Soap & Sponge", icon: "🫧", bg: "rgba(42,157,143,0.1)", col: "#2A9D8F" }
+          ],
+          cleaning_enabled: true,
+          cleaning_frequency: "weekly",
+          cleaning_day: 6,
+          rotation_type: "round_robin",
+        });
+      }
+
+      // 4. Store everything in state
       setCurrentHouse(house as House);
       setDbMembers(members);
       setDbCleanRecs(cleanRecs);

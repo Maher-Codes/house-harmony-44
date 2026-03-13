@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Member, CleanRecord, RotationEntry, fmtDate } from "@/lib/househub";
-import { CheckCircle2, Clock, Sparkles } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
 
 interface CleaningTabProps {
   rotation:      RotationEntry[];

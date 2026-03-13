@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { Member, CleanRecord, Purchase, SUPPLIES, fmtDate, ago } from "@/lib/househub";
-import { Sparkles, ShoppingBag, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
+import { Member, CleanRecord, Purchase, SUPPLIES, fmtDate } from "@/lib/househub";
+import { ShoppingBag, CalendarDays, ChevronDown, ChevronUp } from "lucide-react";
 
 interface HistoryTabProps {
   user:      Member;

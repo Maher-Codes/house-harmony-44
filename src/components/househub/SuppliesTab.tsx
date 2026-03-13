@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Member, Purchase, Supply, SUPPLIES, fmtDate } from "@/lib/househub";
-import { CheckCircle2, ShoppingBag } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 
 interface SuppliesTabProps {
   user:            Member | null;

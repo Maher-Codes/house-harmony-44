@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react";
 import {
   Member, House, CleanRecord, Purchase, ActivityLog,
-  RotationEntry, Supply, buildRotation, fmtDate, now, DAY_LABELS,
+  RotationEntry, Supply, SupplyResponsibility, buildRotation, fmtDate, DAY_LABELS,
 } from "@/lib/househub";
 import Avatar from "./Avatar";
 import { houseService } from "@/services/houseService";
@@ -16,7 +16,7 @@ interface SetupWizardProps {
     purchases:   Purchase[],
     log:         ActivityLog[],
     rotation:    RotationEntry[],
-    supplyResps: { id: string; house_id: string; item_name: string; next_member_id: string }[],
+    supplyResps: SupplyResponsibility[],
   ) => void;
 }
 
