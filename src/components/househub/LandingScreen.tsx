@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Sparkles, DoorOpen, ArrowRight, ChevronDown, ChevronUp } from "lucide-react";
 
 interface LandingScreenProps {
@@ -65,6 +65,22 @@ const FAQS = [
 const LandingScreen = ({ onSetup, onJoin }: LandingScreenProps) => {
   const [openFaq,      setOpenFaq]      = useState<number | null>(null);
   const [showAllSteps, setShowAllSteps] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [showInstall,   setShowInstall]   = useState(false);
+
+  useEffect(() => {
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstall(true);
+    });
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    await installPrompt.prompt();
+    setShowInstall(false);
+  };
 
   const visibleSteps = showAllSteps ? HOW_IT_WORKS : HOW_IT_WORKS.slice(0, 3);
 
@@ -223,6 +239,24 @@ const LandingScreen = ({ onSetup, onJoin }: LandingScreenProps) => {
             })}
           </div>
         </div>
+
+        {showInstall && (
+          <div className="mx-auto max-w-md w-full px-6 pb-6">
+            <button
+              onClick={handleInstall}
+              className="w-full flex items-center gap-4 p-4 rounded-3xl border-2 border-[#2a9d8f]/30 bg-[#2a9d8f]/5 hover:bg-[#2a9d8f]/10 hover:border-[#2a9d8f]/50 transition-all duration-300 active:scale-[0.98]"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-[#2a9d8f]/10 flex items-center justify-center shrink-0 text-2xl">
+                📲
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-bold text-sm text-foreground mb-0.5">Install HouseHub</p>
+                <p className="text-xs text-muted-foreground font-medium">Add to your home screen for the best experience</p>
+              </div>
+              <span className="text-[#2a9d8f] font-bold text-sm">Install</span>
+            </button>
+          </div>
+        )}
 
         {/* ── Footer — UNCHANGED ── */}
         <div className="mt-12 pt-8 border-t border-border/40 text-center animate-fade-up" style={{ animationDelay: ".8s" }}>

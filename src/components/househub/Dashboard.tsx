@@ -11,6 +11,7 @@ import HistoryTab  from "./HistoryTab";
 import { houseService } from "@/services/houseService";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Share2, Check } from "lucide-react";
+import { notificationService } from "@/services/notificationService";
 
 interface DashboardProps {
   initialUser:                   Member;
@@ -182,6 +183,16 @@ const Dashboard = ({
       const lastCleanerIdx = orderedMembers.findIndex(m => m.id === user.id);
       return buildRotation(orderedMembers, Math.max(0, lastCleanerIdx));
     });
+
+    // Notify the next cleaner if it's them on this device
+    const newNextCleaner = members.find(m => m.id === rotation[0]?.memberId);
+    if (newNextCleaner?.id === user.id) {
+      notificationService.showLocal(
+        "🧹 It's your turn to clean!",
+        `The house needs cleaning. You're up next!`
+      );
+    }
+
     setActLog(prev => [{ id: uid(), member_id: user.id, action: `${user.name} cleaned the house`, icon: "🧹", created_at: now() }, ...prev]);
 
     let realId: string | null = null;
@@ -221,6 +232,15 @@ const Dashboard = ({
 
     setPurchases(prev => [{ id: tempId, member_id: user.id, house_id: house.id, item_name: supply.label, date: today }, ...prev]);
     setSupplyResps(prev => prev.map(r => r.item_name === supply.label ? { ...r, next_member_id: nextMember.id } : r));
+
+    // Notify the next buyer if it's them on this device
+    if (nextMember.id === user.id) {
+      notificationService.showLocal(
+        `${supply.icon} It's your turn to buy ${supply.label}!`,
+        `${user.name} just bought it — you're next.`
+      );
+    }
+
     setActLog(prev => [{ id: uid(), member_id: user.id, action: `${user.name} bought ${supply.label}`, icon: supply.icon, created_at: now() }, ...prev]);
 
     let realId: string | null = null;
@@ -249,16 +269,42 @@ const Dashboard = ({
 
   // ── Real-time subscriptions ───────────────────────────────────────────
   useEffect(() => {
+    // Ask for notification permission after a short delay
+    // so it doesn't interrupt the user immediately on load
+    const permTimeout = setTimeout(() => {
+      notificationService.requestPermission();
+    }, 4000);
+
     const cleanSub = supabase.channel("clean_records_changes")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "clean_records", filter: `house_id=eq.${house.id}` }, payload => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "clean_records", filter: `house_id=eq.${house.id}` }, async payload => {
         const rec = payload.new as CleanRecord;
         setCleanRecs(prev => prev.find(r => r.id === rec.id) ? prev : [rec, ...prev]);
+        
+        // Check if current user is now next to clean
+        const updatedRotation = rotation; // rotation state at this point
+        const nextCleanerId = updatedRotation[0]?.memberId;
+        if (nextCleanerId === user.id && rec.member_id !== user.id) {
+          await notificationService.showLocal(
+            "🧹 It's your turn to clean!",
+            "Your housemate just cleaned — you're up next!"
+          );
+        }
       }).subscribe();
 
     const purchaseSub = supabase.channel("purchases_changes")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "purchases", filter: `house_id=eq.${house.id}` }, payload => {
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "purchases", filter: `house_id=eq.${house.id}` }, async payload => {
         const p = payload.new as Purchase;
         setPurchases(prev => prev.find(x => x.id === p.id) ? prev : [p, ...prev]);
+
+        // Check if current user is now next for this item
+        const resp = supplyResps.find(r => r.item_name === p.item_name);
+        if (resp?.next_member_id === user.id && p.member_id !== user.id) {
+          const supply = SUPPLIES.find(s => s.label === p.item_name);
+          await notificationService.showLocal(
+            `${supply?.icon ?? '🛒'} Your turn to buy ${p.item_name}!`,
+            `Your housemate just bought it — you're next.`
+          );
+        }
       }).subscribe();
 
     const respSub = supabase.channel("supply_resps_changes")
@@ -268,11 +314,12 @@ const Dashboard = ({
       }).subscribe();
 
     return () => {
+      clearTimeout(permTimeout);
       supabase.removeChannel(cleanSub);
       supabase.removeChannel(purchaseSub);
       supabase.removeChannel(respSub);
     };
-  }, [house.id]);
+  }, [house.id, rotation, user.id, supplyResps]);
 
   // ── Tabs — cleaning tab hidden when cleaningEnabled is false ──────────
   const tabs = [
