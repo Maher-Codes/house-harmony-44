@@ -69,14 +69,16 @@ export interface Alert {
 }
 
 export interface HouseSettings {
-  id:                 string;
-  house_id:           string;
-  supplies:           Supply[];          // custom supply items
-  cleaning_enabled:   boolean;
-  cleaning_frequency: "weekly" | "biweekly" | "monthly";
-  cleaning_day:       number;            // 0=Sun … 6=Sat
-  rotation_type:      "round_robin" | "free_for_all";
-  created_at:         string;
+  id:                      string;
+  house_id:                string;
+  supplies:                Supply[];          // custom supply items
+  cleaning_enabled:        boolean;
+  cleaning_frequency:      "weekly" | "biweekly" | "monthly";
+  cleaning_day:            number;            // 0=Sun … 6=Sat
+  rotation_type:           "round_robin" | "free_for_all";
+  cleaning_rotation_order: string[];          // ordered member IDs for cleaning
+  supplies_rotation_order: string[];          // ordered member IDs for supplies
+  created_at:              string;
 }
 
 // Day label helper
@@ -167,7 +169,8 @@ export const nextSat = (from: Date = new Date()): Date => {
 
 /**
  * Builds the upcoming cleaning rotation.
- * lastCleanerIdx = index in members[] of who cleaned last.
+ * Pass members[] already in the user-defined rotation order.
+ * lastCleanerIdx = index of who cleaned last in that ordered array.
  * The next person is (lastCleanerIdx + 1) % members.length.
  */
 export const buildRotation = (

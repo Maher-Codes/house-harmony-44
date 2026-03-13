@@ -29,6 +29,8 @@ const Index = () => {
     rotation:               RotationEntry[];
     supplyResponsibilities: SupplyResponsibility[];
     cleaningEnabled:        boolean;
+    cleaningRotationOrder:  string[];
+    suppliesRotationOrder:  string[];
   } | null>(null);
 
   // ── On mount: check for a saved session ───────────────────────────
@@ -81,6 +83,14 @@ const Index = () => {
         : 0;
       const rotation = buildRotation(members, Math.max(0, lastCleanerIdx));
 
+      const cleaningRotationOrder: string[] = houseSettings?.cleaning_rotation_order?.length
+        ? houseSettings.cleaning_rotation_order
+        : members.map(m => m.id); // fallback for legacy houses
+
+      const suppliesRotationOrder: string[] = houseSettings?.supplies_rotation_order?.length
+        ? houseSettings.supplies_rotation_order
+        : members.map(m => m.id); // fallback for legacy houses
+
       setAppData({
         user:                   member,
         house:                  house as House,
@@ -91,6 +101,8 @@ const Index = () => {
         rotation,
         supplyResponsibilities: supplyResps,
         cleaningEnabled:        houseSettings?.cleaning_enabled ?? true,
+        cleaningRotationOrder,
+        suppliesRotationOrder,
       });
       setScreen("app");
 
@@ -114,15 +126,17 @@ const Index = () => {
 
   // ── enterApp — called by SetupWizard and JoinScreen ───────────────
   const enterApp = useCallback((
-    member:          Member,
-    houseData:       House,
-    membersData:     Member[],
-    initClean:       CleanRecord[],
-    initPurchases:   Purchase[],
-    initLog:         ActivityLog[],
-    initRotation:    RotationEntry[],
-    initSupplyResps: SupplyResponsibility[] = [],
-    cleaningEnabled: boolean = true,
+    member:               Member,
+    houseData:            House,
+    membersData:          Member[],
+    initClean:            CleanRecord[],
+    initPurchases:        Purchase[],
+    initLog:              ActivityLog[],
+    initRotation:         RotationEntry[],
+    initSupplyResps:      SupplyResponsibility[] = [],
+    cleaningEnabled:      boolean = true,
+    cleaningRotationOrder: string[] = [],
+    suppliesRotationOrder: string[] = [],
   ) => {
     // Persist session so refresh goes straight back to dashboard
     saveSession(houseData.house_code, member.id);
@@ -137,6 +151,8 @@ const Index = () => {
       rotation:               initRotation,
       supplyResponsibilities: initSupplyResps,
       cleaningEnabled:        cleaningEnabled,
+      cleaningRotationOrder:  cleaningRotationOrder.length ? cleaningRotationOrder : membersData.map(m => m.id),
+      suppliesRotationOrder:  suppliesRotationOrder.length ? suppliesRotationOrder : membersData.map(m => m.id),
     });
     setScreen("app");
   }, []);
@@ -166,6 +182,8 @@ const Index = () => {
         initialRotation={appData.rotation}
         initialSupplyResponsibilities={appData.supplyResponsibilities}
         initialCleaningEnabled={appData.cleaningEnabled}
+        initialCleaningRotationOrder={appData.cleaningRotationOrder}
+        initialSuppliesRotationOrder={appData.suppliesRotationOrder}
         onLeaveHouse={leaveHouse}
       />
     );

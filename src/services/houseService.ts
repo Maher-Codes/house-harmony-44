@@ -216,22 +216,26 @@ export const houseService = {
   async saveHouseSettings(
     houseId: string,
     settings: {
-      supplies:           { id: string; label: string; icon: string; col: string; bg: string }[];
-      cleaning_enabled:   boolean;
-      cleaning_frequency: string;
-      cleaning_day:       number;
-      rotation_type:      string;
+      supplies:                { id: string; label: string; icon: string; col: string; bg: string }[];
+      cleaning_enabled:        boolean;
+      cleaning_frequency:      string;
+      cleaning_day:            number;
+      rotation_type:           string;
+      cleaning_rotation_order?: string[];
+      supplies_rotation_order?: string[];
     }
   ): Promise<void> {
     const { error } = await supabase
       .from("house_settings")
       .upsert({
-        house_id:           houseId,
-        supplies:           settings.supplies,
-        cleaning_enabled:   settings.cleaning_enabled,
-        cleaning_frequency: settings.cleaning_frequency,
-        cleaning_day:       settings.cleaning_day,
-        rotation_type:      settings.rotation_type,
+        house_id:                houseId,
+        supplies:                settings.supplies,
+        cleaning_enabled:        settings.cleaning_enabled,
+        cleaning_frequency:      settings.cleaning_frequency,
+        cleaning_day:            settings.cleaning_day,
+        rotation_type:           settings.rotation_type,
+        cleaning_rotation_order: settings.cleaning_rotation_order ?? [],
+        supplies_rotation_order: settings.supplies_rotation_order ?? [],
       }, { onConflict: "house_id" });
 
     if (error) throw error;

@@ -9,15 +9,17 @@ import { Plus, X, Check, ChevronRight } from "lucide-react";
 
 interface SetupWizardProps {
   enterApp: (
-    member:      Member,
-    house:       House,
-    members:     Member[],
-    cleanRecs:   CleanRecord[],
-    purchases:   Purchase[],
-    log:         ActivityLog[],
-    rotation:    RotationEntry[],
-    supplyResps: SupplyResponsibility[],
-    cleaningEnabled: boolean,
+    member:               Member,
+    house:                House,
+    members:              Member[],
+    cleanRecs:            CleanRecord[],
+    purchases:            Purchase[],
+    log:                  ActivityLog[],
+    rotation:             RotationEntry[],
+    supplyResps:          SupplyResponsibility[],
+    cleaningEnabled:      boolean,
+    cleaningRotationOrder: string[],
+    suppliesRotationOrder: string[],
   ) => void;
 }
 
@@ -50,15 +52,43 @@ const EMOJI_PICKER = [
   { category: "Tools & Other",       emojis: ["🔧","🪛","🔑","🧲","💡","🔦","🪜","🗑️","📮","🎁"] },
 ];
 
-const TOTAL_STEPS = 8;
+// Step layout (0-indexed):
+// 0  — House name
+// 1  — Number of people
+// 2  — Member names
+// 3  — Cleaning rotation order  (skipped if !cleaningEnabled)
+// 4  — Supplies rotation order
+// 5  — What do you share?
+// 6  — Cleaning schedule
+// 7  — Starting point (who bought/cleaned last)
+// 8  — House code reveal
+// 9  — Who are you?
+const TOTAL_STEPS = 10;
+
 const inputClass  = "w-full px-4 py-3.5 rounded-xl border border-border bg-card text-foreground text-base font-medium focus:outline-none focus:border-primary transition-colors";
 const btnPrimary  = "w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-base shadow-sm hover:bg-primary/90 active:scale-[0.98] transition-all disabled:opacity-40 disabled:pointer-events-none";
+
+const ordinal = (n: number) => {
+  const s = ["th","st","nd","rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] ?? s[v] ?? s[0]);
+};
+
+const swapItems = (arr: string[], i: number, j: number): string[] => {
+  const next = [...arr];
+  [next[i], next[j]] = [next[j], next[i]];
+  return next;
+};
 
 const SetupWizard = ({ enterApp }: SetupWizardProps) => {
   const [step,        setStep]  = useState(0);
   const [houseName,   setHN]    = useState("");
   const [count,       setCount] = useState("");
   const [names,       setNames] = useState<string[]>([]);
+
+  // Rotation order state — arrays of names (converted to IDs on save)
+  const [cleaningRotationOrder, setCleaningRotationOrder] = useState<string[]>([]);
+  const [suppliesRotationOrder, setSuppliesRotationOrder] = useState<string[]>([]);
 
   const [selectedSupplies, setSelectedSupplies] = useState<Supply[]>(SUGGESTED_SUPPLIES.slice(0, 3));
   const [customLabel,      setCustomLabel]       = useState("");
@@ -96,14 +126,33 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
     return { date: d, label: fmtDate(d, { weekday: "long", month: "short", day: "numeric" }) };
   }, [cleaningDay]);
 
+  // ── Navigation ─────────────────────────────────────────────────────────
   const goNext = () => setStep(s => Math.min(s + 1, TOTAL_STEPS - 1));
-  const goBack = () => setStep(s => Math.max(s - 1, 0));
+  const goBack = () => {
+    setStep(s => {
+      // When going back from step 4 (supplies rotation) and cleaning is disabled,
+      // skip step 3 (cleaning rotation) and go directly to step 2.
+      if (s === 4 && !cleaningEnabled) return 2;
+      return Math.max(s - 1, 0);
+    });
+  };
+
+  // ── Handlers ────────────────────────────────────────────────────────────
 
   const handleCount = () => {
     const n = parseInt(count);
     if (isNaN(n) || n < 2 || n > 20) return;
     setNames(Array(n).fill(""));
     goNext();
+  };
+
+  // After completing member names (step 2), initialize both rotation orders
+  const handleNamesComplete = () => {
+    const validNames = names.filter(n => n.trim());
+    setCleaningRotationOrder([...validNames]);
+    setSuppliesRotationOrder([...validNames]);
+    // Go to step 3 (cleaning rotation) or skip to step 4 if cleaning disabled
+    setStep(cleaningEnabled ? 3 : 4);
   };
 
   const toggleSupply = (s: Supply) =>
@@ -140,6 +189,74 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
     </div>
   );
 
+  // ── Rotation order step UI (shared for both cleaning + supplies) ─────────
+  const renderRotationStep = (
+    title: string,
+    subtitle: string,
+    note: string,
+    order: string[],
+    setOrder: (o: string[]) => void,
+    onContinue: () => void,
+  ) => (
+    <div className="flex flex-col gap-4 animate-fade-up">
+      <button className="w-fit text-sm font-bold text-muted-foreground hover:text-foreground" onClick={goBack}>← Back</button>
+      <div className="mb-1">
+        <p className="text-4xl mb-3">🔄</p>
+        <h2 className="font-display font-black text-2xl text-foreground mb-1">{title}</h2>
+        <p className="text-muted-foreground text-sm">{subtitle}</p>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {order.map((name, i) => (
+          <div
+            key={name}
+            className="flex items-center gap-3 p-3.5 rounded-3xl border-2 border-border bg-card shadow-sm"
+          >
+            {/* Position number */}
+            <span
+              className="text-sm font-black w-8 shrink-0 text-center"
+              style={{ color: "#2a9d8f" }}
+            >
+              {ordinal(i + 1)}
+            </span>
+
+            {/* Avatar */}
+            <Avatar name={name} size={40} radius={12} fontSize={16} />
+
+            {/* Name */}
+            <span className="flex-1 font-semibold text-sm text-foreground">{name}</span>
+
+            {/* Up / Down buttons */}
+            <div className="flex flex-col gap-0.5 shrink-0">
+              <button
+                className="w-8 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all active:scale-90 disabled:opacity-25 disabled:pointer-events-none border border-border bg-muted/60 hover:bg-muted"
+                disabled={i === 0}
+                onClick={() => setOrder(swapItems(order, i, i - 1))}
+                aria-label="Move up"
+              >▲</button>
+              <button
+                className="w-8 h-7 rounded-lg flex items-center justify-center text-sm font-bold transition-all active:scale-90 disabled:opacity-25 disabled:pointer-events-none border border-border bg-muted/60 hover:bg-muted"
+                disabled={i === order.length - 1}
+                onClick={() => setOrder(swapItems(order, i, i + 1))}
+                aria-label="Move down"
+              >▼</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Note */}
+      <p className="text-xs text-muted-foreground bg-muted/40 border border-border rounded-xl px-4 py-3">
+        🔁 {note}
+      </p>
+
+      <button className={btnPrimary} onClick={onContinue}>
+        Confirm order <ChevronRight size={16} className="inline ml-1" />
+      </button>
+    </div>
+  );
+
+  // ── Validation ──────────────────────────────────────────────────────────
   const v0 = houseName.trim().length > 1;
   const v1 = parseInt(count) >= 2 && parseInt(count) <= 20;
   const v2 = names.length > 0 && names.every(n => n.trim().length > 0);
@@ -147,6 +264,7 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
   const v6 = selectedSupplies.every(s => resp[s.id]?.last?.trim() && resp[s.id]?.next?.trim())
     && (!cleaningEnabled || (resp["__cleaning"]?.last?.trim() && resp["__cleaning"]?.next?.trim()));
 
+  // ── handleFinish — creates house in DB ────────────────────────────────
   const handleFinish = async () => {
     setIsGen(true); setError(null);
     try {
@@ -171,28 +289,42 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
         .filter(x => x.next_member_id !== null) as { item_name: string; next_member_id: string }[];
       if (supplyItems.length > 0) await houseService.insertSupplyResponsibilities(newHouse.id, supplyItems);
 
+      // Convert rotation order names → real member IDs
+      const cleaningRotationIds = cleaningRotationOrder
+        .map(name => insertedMembers.find(m => m.name === name)?.id)
+        .filter(Boolean) as string[];
+
+      const suppliesRotationIds = suppliesRotationOrder
+        .map(name => insertedMembers.find(m => m.name === name)?.id)
+        .filter(Boolean) as string[];
+
       await houseService.saveHouseSettings(newHouse.id, {
-        supplies:           selectedSupplies,
-        cleaning_enabled:   cleaningEnabled,
-        cleaning_frequency: cleaningFrequency,
-        cleaning_day:       cleaningDay,
-        rotation_type:      "round_robin",
+        supplies:                selectedSupplies,
+        cleaning_enabled:        cleaningEnabled,
+        cleaning_frequency:      cleaningFrequency,
+        cleaning_day:            cleaningDay,
+        rotation_type:           "round_robin",
+        cleaning_rotation_order: cleaningRotationIds,
+        supplies_rotation_order: suppliesRotationIds,
       });
 
       realHouseRef.current   = newHouse as House;
       realMembersRef.current = insertedMembers;
       setCode(generatedCode);
-      setStep(6);
+      setStep(8); // house code reveal step
     } catch (err: any) {
       console.error("Setup failed:", err);
       setError(err?.message || "Something went wrong. Please try again.");
     } finally { setIsGen(false); }
   };
 
+  // ── buildAndEnter — enters dashboard after selecting member ───────────
   const buildAndEnter = (selectedMember: Member) => {
     const house   = realHouseRef.current;
     const members = realMembersRef.current;
     if (!house || !members.length) return;
+
+    const getId = (name: string) => members.find(m => m.name === name.trim())?.id ?? null;
 
     const lastCleaner = cleaningEnabled ? members.find(m => m.name === resp["__cleaning"]?.last?.trim()) : null;
     const initClean: CleanRecord[] = lastCleaner
@@ -206,8 +338,17 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
       return acc;
     }, []);
 
-    const lastCleanerIdx = lastCleaner ? members.indexOf(lastCleaner) : 0;
-    const rotation       = buildRotation(members, lastCleanerIdx);
+    // Build rotation using cleaning rotation order
+    const cleaningRotationIds = cleaningRotationOrder
+      .map(name => getId(name))
+      .filter(Boolean) as string[];
+
+    const orderedMembers = cleaningRotationIds.length
+      ? cleaningRotationIds.map(id => members.find(m => m.id === id)).filter(Boolean) as Member[]
+      : members;
+
+    const lastCleanerIdx = lastCleaner ? orderedMembers.findIndex(m => m.id === lastCleaner.id) : 0;
+    const rotation = buildRotation(orderedMembers, Math.max(0, lastCleanerIdx));
 
     const initSupplyResps = selectedSupplies.reduce<{ id: string; house_id: string; item_name: string; next_member_id: string }[]>((acc, s, i) => {
       const m = members.find(x => x.name === resp[s.id]?.next?.trim());
@@ -215,7 +356,16 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
       return acc;
     }, []);
 
-    enterApp(selectedMember, house, members, initClean, initPurchases, [], rotation, initSupplyResps, cleaningEnabled);
+    const suppliesRotationIds = suppliesRotationOrder
+      .map(name => getId(name))
+      .filter(Boolean) as string[];
+
+    enterApp(
+      selectedMember, house, members, initClean, initPurchases, [],
+      rotation, initSupplyResps, cleaningEnabled,
+      cleaningRotationIds.length ? cleaningRotationIds : members.map(m => m.id),
+      suppliesRotationIds.length ? suppliesRotationIds : members.map(m => m.id),
+    );
   };
 
   const chooseMember = (m: Member) => { setChosen(m.id); setTimeout(() => buildAndEnter(m), 450); };
@@ -297,12 +447,32 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
                   value={n} onChange={e => setNames(p => p.map((v, j) => j === i ? e.target.value : v))} />
               </div>
             ))}
-            <button className={`${btnPrimary} mt-2`} onClick={goNext} disabled={!v2}>Continue <ChevronRight size={16} className="inline ml-1" /></button>
+            <button className={`${btnPrimary} mt-2`} onClick={handleNamesComplete} disabled={!v2}>Continue <ChevronRight size={16} className="inline ml-1" /></button>
           </div>
         )}
 
-        {/* ── STEP 3 — What do you share? ── */}
-        {step === 3 && (
+        {/* ── STEP 3 — Cleaning rotation order (only if cleaningEnabled) ── */}
+        {step === 3 && cleaningEnabled && renderRotationStep(
+          "What is the cleaning rotation order?",
+          "Set the order for cleaning turns. The house follows this exact sequence.",
+          "This order repeats forever. After the last person it goes back to the first.",
+          cleaningRotationOrder,
+          setCleaningRotationOrder,
+          goNext,
+        )}
+
+        {/* ── STEP 4 — Supplies rotation order (always shown) ── */}
+        {step === 4 && renderRotationStep(
+          "What is the supplies rotation order?",
+          "Set the order for buying shared supplies. This applies to all items equally.",
+          "This order applies to all shared items. After the last person it goes back to the first.",
+          suppliesRotationOrder,
+          setSuppliesRotationOrder,
+          goNext,
+        )}
+
+        {/* ── STEP 5 — What do you share? ── */}
+        {step === 5 && (
           <div className="flex flex-col gap-5 animate-fade-up">
             <button className="w-fit text-sm font-bold text-muted-foreground hover:text-foreground" onClick={goBack}>← Back</button>
             <div>
@@ -385,8 +555,8 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
           </div>
         )}
 
-        {/* ── STEP 4 — Cleaning schedule ── */}
-        {step === 4 && (
+        {/* ── STEP 6 — Cleaning schedule ── */}
+        {step === 6 && (
           <div className="flex flex-col gap-5 animate-fade-up">
             <button className="w-fit text-sm font-bold text-muted-foreground hover:text-foreground" onClick={goBack}>← Back</button>
             <div>
@@ -436,8 +606,8 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
         )}
 
 
-        {/* ── STEP 5 — Who bought what last? ── */}
-        {step === 5 && (
+        {/* ── STEP 7 — Who bought what last? ── */}
+        {step === 7 && (
           <div className="flex flex-col gap-5 animate-fade-up">
             <button className="w-fit text-sm font-bold text-muted-foreground hover:text-foreground" onClick={goBack}>← Back</button>
             <div>
@@ -472,8 +642,8 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
           </div>
         )}
 
-        {/* ── STEP 6 — House code ── */}
-        {step === 6 && (
+        {/* ── STEP 8 — House code ── */}
+        {step === 8 && (
           <div className="flex flex-col gap-4 text-center animate-fade-up">
             <div className="text-6xl" style={{ animation: "float 3s ease-in-out infinite" }}>🎉</div>
             <h2 className="font-display font-black text-2xl">Your house is ready!</h2>
@@ -491,14 +661,16 @@ const SetupWizard = ({ enterApp }: SetupWizardProps) => {
               <div className="flex flex-col gap-1.5 text-sm">
                 <p>🛒 <b>{selectedSupplies.length} shared items:</b> {selectedSupplies.map(s => `${s.icon} ${s.label}`).join(", ")}</p>
                 <p>🧹 <b>Cleaning:</b> {cleaningEnabled ? `${cleaningFrequency === "weekly" ? "Every week" : cleaningFrequency === "biweekly" ? "Every 2 weeks" : "Monthly"} on ${DAY_LABELS[cleaningDay]}s` : "Not scheduled"}</p>
+                {cleaningEnabled && <p>🔄 <b>Cleaning order:</b> {cleaningRotationOrder.join(" → ")}</p>}
+                <p>🔄 <b>Supplies order:</b> {suppliesRotationOrder.join(" → ")}</p>
               </div>
             </div>
-            <button className={btnPrimary} onClick={() => setStep(7)}>Who are you? →</button>
+            <button className={btnPrimary} onClick={() => setStep(9)}>Who are you? →</button>
           </div>
         )}
 
-        {/* ── STEP 7 — Select your name ── */}
-        {step === 7 && (
+        {/* ── STEP 9 — Select your name ── */}
+        {step === 9 && (
           <div className="flex flex-col gap-3 animate-fade-up">
             <div className="mb-1">
               <p className="text-4xl mb-3">👋</p>

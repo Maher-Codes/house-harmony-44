@@ -16,7 +16,9 @@ interface JoinScreenProps {
     log: ActivityLog[],
     rotation: RotationEntry[],
     supplyResponsibilities: SupplyResponsibility[],
-    cleaningEnabled: boolean
+    cleaningEnabled: boolean,
+    cleaningRotationOrder: string[],
+    suppliesRotationOrder: string[],
   ) => void;
   onBack: () => void;
 }
@@ -129,8 +131,17 @@ const JoinScreen = ({ enterApp, onBack }: JoinScreenProps) => {
       Math.max(0, lastCleanerIdx)
     );
 
+    // Extract rotation orders from house settings, fall back to DB insertion order
+    const cleaningRotationOrder: string[] = dbHouseSettings?.cleaning_rotation_order?.length
+      ? dbHouseSettings.cleaning_rotation_order
+      : dbMembers.map((x: Member) => x.id);
+
+    const suppliesRotationOrder: string[] = dbHouseSettings?.supplies_rotation_order?.length
+      ? dbHouseSettings.supplies_rotation_order
+      : dbMembers.map((x: Member) => x.id);
+
     setTimeout(
-      () => enterApp(m, currentHouse, dbMembers, dbCleanRecs, dbPurchases, [], rotation, dbSupplyResps, dbHouseSettings?.cleaning_enabled ?? true),
+      () => enterApp(m, currentHouse, dbMembers, dbCleanRecs, dbPurchases, [], rotation, dbSupplyResps, dbHouseSettings?.cleaning_enabled ?? true, cleaningRotationOrder, suppliesRotationOrder),
       450
     );
   };

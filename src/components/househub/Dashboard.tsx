@@ -22,6 +22,8 @@ interface DashboardProps {
   initialRotation:               RotationEntry[];
   initialSupplyResponsibilities: SupplyResponsibility[];
   initialCleaningEnabled:        boolean;
+  initialCleaningRotationOrder:  string[];
+  initialSuppliesRotationOrder:  string[];
   onLeaveHouse:                  () => void;
 }
 
@@ -40,6 +42,8 @@ const Dashboard = ({
   initialRotation,
   initialSupplyResponsibilities,
   initialCleaningEnabled,
+  initialCleaningRotationOrder,
+  initialSuppliesRotationOrder,
   onLeaveHouse,
 }: DashboardProps) => {
 
@@ -54,6 +58,8 @@ const Dashboard = ({
   const [user]                         = useState(initialUser);
   const [house]                        = useState(initialHouse);
   const [cleaningEnabled]              = useState(initialCleaningEnabled);
+  const [cleaningRotationOrder]        = useState(initialCleaningRotationOrder);
+  const [suppliesRotationOrder]        = useState(initialSuppliesRotationOrder);
   const [toast,        setToast]       = useState<{ msg: string; id: number } | null>(null);
   const [undoAction,   setUndoAction]  = useState<UndoAction | null>(null);
   const [showLeave,    setShowLeave]   = useState(false);
@@ -168,12 +174,13 @@ const Dashboard = ({
 
     const newRec: CleanRecord = { id: tempId, member_id: user.id, house_id: house.id, date: today };
     setCleanRecs(prev => [newRec, ...prev]);
-    setRotation(prev => {
-      if (!prev.length) return prev;
-      const rest   = prev.slice(1);
-      const last   = prev[prev.length - 1];
-      const cycled: RotationEntry = { memberId: prev[0].memberId, date: nextSat(new Date(last.date.getTime() + 86400000)) };
-      return [...rest, cycled];
+    setRotation(() => {
+      // Build ordered members using user-defined cleaning rotation order
+      const orderedMembers = cleaningRotationOrder.length
+        ? cleaningRotationOrder.map(id => members.find(m => m.id === id)).filter(Boolean) as Member[]
+        : members;
+      const lastCleanerIdx = orderedMembers.findIndex(m => m.id === user.id);
+      return buildRotation(orderedMembers, Math.max(0, lastCleanerIdx));
     });
     setActLog(prev => [{ id: uid(), member_id: user.id, action: `${user.name} cleaned the house`, icon: "🧹", created_at: now() }, ...prev]);
 
@@ -193,7 +200,7 @@ const Dashboard = ({
         if (realId) { try { await supabase.from("clean_records").delete().eq("id", realId); } catch (e) { console.error(e); } }
       },
     });
-  }, [user, house, cleanRecs, rotation, showToast]);
+  }, [user, house, cleanRecs, rotation, members, cleaningRotationOrder, showToast]);
 
   // ── doBuy ─────────────────────────────────────────────────────────────
   const doBuy = useCallback(async (supply: Supply) => {
@@ -202,8 +209,13 @@ const Dashboard = ({
     const tempId         = uid();
     const currentResp    = supplyResps.find(r => r.item_name === supply.label);
     const currentBuyerId = currentResp?.next_member_id ?? user.id;
-    const currentIdx     = members.findIndex(m => m.id === currentBuyerId);
-    const nextMember     = members[(currentIdx + 1) % members.length];
+
+    // Use suppliesRotationOrder (user-defined) instead of raw members insertion order
+    const rotationOrder  = suppliesRotationOrder.length ? suppliesRotationOrder : members.map(m => m.id);
+    const currentBuyerIdx = rotationOrder.indexOf(currentBuyerId);
+    const nextBuyerId    = rotationOrder[(currentBuyerIdx + 1) % rotationOrder.length];
+    const nextMember     = members.find(m => m.id === nextBuyerId) ?? members[0];
+
     const prevPurchases  = purchases;
     const prevResps      = supplyResps;
 
@@ -233,7 +245,7 @@ const Dashboard = ({
         }
       },
     });
-  }, [user, house, members, supplyResps, purchases, showToast]);
+  }, [user, house, members, supplyResps, suppliesRotationOrder, purchases, showToast]);
 
   // ── Real-time subscriptions ───────────────────────────────────────────
   useEffect(() => {
